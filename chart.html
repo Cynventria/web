@@ -1,0 +1,184 @@
+
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<title>Line Chart</title>
+	<script src="https://www.chartjs.org/dist/2.8.0/Chart.min.js"></script>
+	
+	<script src="https://mltd.matsurihi.me/js/mltd_chara.js"></script>
+	
+	<style>
+	canvas{
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+	}
+	</style>
+</head>
+
+<body>
+	<div style="width:100%;">
+		<canvas id="canvas"></canvas>
+	</div>
+	有些資料有缺，我沒有管他直接靠右對齊，有些資料可能差一兩格。
+	怕被api擋下來，每250ms載入一條線，一開始的時候請稍等一下
+	<br>
+	<br>
+
+	<script>
+		
+		var config = {
+			type: 'line',
+			data: {
+				labels: [],
+				datasets: []
+			},
+			options: {
+				responsive: true,
+				animation: false,
+				title: {
+					display: true,
+					text: 'Chart.js Line Chart'
+				},
+				tooltips: {
+					enabled: 'false',
+					mode: 'index',
+					intersect: false,
+				},
+				hover: {
+					mode: 'nearest',
+					intersect: true
+				},
+				scales: {
+					xAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'Time'
+						}
+					}],
+					yAxes: [{
+						display: true,
+						scaleLabel: {
+							display: true,
+							labelString: 'pt'
+						}
+					}]
+				}
+			}
+		};
+
+		window.onload = function() {
+			var ctx = document.getElementById('canvas').getContext('2d');
+			window.myLine = new Chart(ctx, config);
+		};
+		
+		
+		
+		var rank = 1000;
+		
+		//if($arg_rank > 0) rank = $arg_rank;
+			var arg_rank = getUrlVars()["rank"];
+			if(arg_rank > 0)rank = arg_rank;
+
+
+		var pt = [];
+		var time = [0];
+		var count = 1;
+
+		const namelist = Object.values(mltd_chara_list).map(idol => idol.name);
+		const colorlist = Object.values(mltd_chara_list).map(idol => idol.color);
+		getData(1, rank);
+
+	
+	
+		
+		
+		function getData(idol, rank){
+
+			if(idol > 52) return;
+			
+			var xhr = new XMLHttpRequest();
+			var url = "https://api.matsurihi.me/mltd/v1/events/92/rankings/logs/idolPoint";
+			var ori;
+			
+			
+			
+			
+			xhr.open("get" , url + "/" + idol + "/" + rank);
+			//sleep(300);
+			xhr.send();
+
+			xhr.onreadystatechange = function () {
+				
+				if (this.readyState == 4 && this.status == 200) {
+					
+					ori = JSON.parse(this.responseText);
+					console.log(ori[0].data);
+					var scores = [];
+					var times = [];
+					for(var i = 0; i < ori[0].data.length; i++){
+						scores[i] = ori[0].data[i].score;
+						
+						if(idol == 1) config.data.labels.push(ori[0].data[i].summaryTime);
+				
+					}
+					
+				
+
+					
+					var line  = new Object();
+						line.label= namelist[idol-1];
+						line.borderColor= colorlist[idol-1];
+						line.backgroundColor= colorlist[idol-1];
+						line.fill= false;
+						line.data= scores;
+						while(line.data.length < config.data.labels.length){
+							line.data.unshift(0);
+						}
+						
+						
+					
+					
+					config.data.datasets.push(line);
+					window.myLine.update();
+					
+					
+					window.setTimeout(getData(idol+1, rank), 3000);
+					
+				}
+
+			}
+			
+		}
+		
+		
+		
+
+		
+		function sleep(milliseconds) 
+		{ 
+			var start = new Date().getTime(); 
+			while(1)
+				 if ((new Date().getTime() - start) > milliseconds)
+					  break;
+		}
+		
+		
+		
+
+		
+		function getUrlVars() {
+			var vars = {};
+			var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+				vars[key] = value;
+			});
+			return vars;
+		}
+
+	</script>
+</body>
+
+</html>
