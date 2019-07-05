@@ -79,7 +79,7 @@
 		
 		var rank = 1000;
 		
-		//if($arg_rank > 0) rank = $arg_rank;
+		
 			var arg_rank = getUrlVars()["rank"];
 			if(arg_rank > 0)rank = arg_rank;
 
@@ -108,7 +108,7 @@
 			
 			
 			xhr.open("get" , url + "/" + idol + "/" + rank);
-			//sleep(300);
+			sleep(300);
 			xhr.send();
 
 			xhr.onreadystatechange = function () {
